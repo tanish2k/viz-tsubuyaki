@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Mathematical Visualization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <!-- Phosphor Icons CDN -->
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        .info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 12px;
+            z-index: 10;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            max-width: 250px;
+        }
+        canvas {
+            display: block;
+        }
+        .controls {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            color: white;
+            font-size: 11px;
+            z-index: 10;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .navigation {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 11px;
+            z-index: 10;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            min-width: 150px;
+        }
+        .nav-button {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #555;
+            color: white;
+            padding: 8px 12px;
+            margin: 2px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-button:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .nav-button:active {
+            background: rgba(255,255,255,0.3);
+        }
+        .nav-button i {
+            font-size: 14px;
+        }
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            margin: 10px 0;
+        }
+        .nav-center {
+            text-align: center;
+        }
+        
+        /* Control Panel Styles */
+        .control-panel {
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+            width: 320px;
+            max-height: 60vh;
+            background: rgba(0,0,0,0.85);
+            border: 1px solid #444;
+            border-radius: 10px;
+            color: white;
+            font-size: 12px;
+            z-index: 10;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        .control-panel.collapsed {
+            transform: translateY(calc(100% - 40px));
+        }
+        
+        .panel-header {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 15px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .panel-header:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .panel-content {
+            padding: 15px;
+        }
+        
+        .control-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .control-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #ddd;
+            font-size: 13px;
+        }
+        
+        .control-group {
+            margin-bottom: 12px;
+        }
+        
+        .control-label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 11px;
+            color: #bbb;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slider {
+            flex: 1;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .slider-value {
+            min-width: 35px;
+            font-size: 10px;
+            color: #aaa;
+            text-align: right;
+        }
+        
+        .preset-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .preset-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: rgba(255,255,255,0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            transition: all 0.2s;
+        }
+        
+        .preset-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .toggle-arrow {
+            font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle-arrow.collapsed {
+            transform: rotate(180deg);
+        }
+        
+        /* Universal Control Tray System */
+        .control-tray-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.1);
+            border: 2px solid rgba(255,255,255,0.8);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            color: rgba(255,255,255,0.9);
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .control-tray-button:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(255,255,255,0.3);
+        }
+        
+        .control-tray {
+            position: fixed;
+            top: 20px;
+            left: 100px;
+            z-index: 95;
+            display: none;
+            flex-direction: row;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 50px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .control-tray.active {
+            display: flex;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .tray-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .tray-icon:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.8);
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255,255,255,0.4);
+        }
+        
+        .tray-icon.active {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.9);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(255,255,255,0.6);
+        }
+        
+        .control-panel-overlay {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.1);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding: 30px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 85;
+            max-height: 60vh;
+            overflow-y: auto;
+            touch-action: manipulation;
+        }
+        
+        .control-panel-overlay.active {
+            transform: translateY(0);
+        }
+        
+        .control-section-header {
+            text-align: center;
+            margin-bottom: 25px;
+            color: rgba(255,255,255,0.9);
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .control-section-header .icon {
+            font-size: 24px;
+        }
+        
+        .drag-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: grab;
+            transition: all 0.3s ease;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .drag-control:active {
+            cursor: grabbing;
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
+            transform: scale(1.02);
+        }
+        
+        .drag-control:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.4);
+        }
+        
+        .control-label {
+            font-size: 14px;
+            color: #ddd;
+            font-weight: 500;
+            flex: 1;
+        }
+        
+        .control-value {
+            font-size: 16px;
+            color: rgba(255,255,255,0.9);
+            font-weight: bold;
+            min-width: 60px;
+            text-align: right;
+            margin-left: 10px;
+        }
+        
+        .control-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.6), rgba(255,255,255,0.8));
+            border-radius: 0 0 15px 15px;
+            transition: width 0.1s ease;
+        }
+        
+        .drag-hint {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            pointer-events: none;
+        }
+        
+        .mobile-preset-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .mobile-preset-btn {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.4);
+            color: rgba(255,255,255,0.8);
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.2s;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .mobile-preset-btn:hover, .mobile-preset-btn:active {
+            background: rgba(255,255,255,0.2);
+            transform: scale(0.98);
+        }
+        
+        .mobile-nav-section {
+            text-align: center;
+        }
+        
+        .mobile-nav-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .mobile-nav-button {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #555;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mobile-nav-button:hover, .mobile-nav-button:active {
+            background: rgba(255,255,255,0.2);
+            transform: scale(0.95);
+        }
+        
+        .mobile-zoom-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .mobile-zoom-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #555;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        /* Media Queries */
+        @media (max-width: 768px) {
+            .info, .navigation, .control-panel, .controls {
+                display: none !important;
+            }
+            
+            .control-tray {
+                left: 20px;
+                top: 100px;
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .tray-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+            
+            .control-panel-overlay {
+                max-height: 70vh;
+                padding: 20px;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .info, .navigation, .control-panel, .controls {
+                display: none !important;
+            }
+        }
+        
+        /* Global touch settings */
+        body {
+            touch-action: manipulation;
+        }
+        
+        canvas {
+            touch-action: pan-x pan-y;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="canvas-container"></div>
+        <div class="info">
+            <p><strong>Live Mathematical Visualization</strong></p>
+            <p>Full Screen | Adaptive Resolution</p>
+            <p>Position: <span id="position">Center</span></p>
+            <p>Zoom: <span id="zoom">2.0x</span></p>
+            <p>Resolution: <span id="resolution">Standard</span></p>
+            <p>Points: <span id="points">0</span></p>
+        </div>
+        <div class="navigation">
+            <div class="nav-center"><strong>Navigate</strong></div>
+            <div class="nav-grid">
+                <button class="nav-button" onclick="navigate(-1, -1)"><i class="ph ph-arrow-up-left"></i></button>
+                <button class="nav-button" onclick="navigate(0, -1)"><i class="ph ph-arrow-up"></i></button>
+                <button class="nav-button" onclick="navigate(1, -1)"><i class="ph ph-arrow-up-right"></i></button>
+                <button class="nav-button" onclick="navigate(-1, 0)"><i class="ph ph-arrow-left"></i></button>
+                <button class="nav-button" onclick="resetPosition()"><i class="ph ph-house"></i></button>
+                <button class="nav-button" onclick="navigate(1, 0)"><i class="ph ph-arrow-right"></i></button>
+                <button class="nav-button" onclick="navigate(-1, 1)"><i class="ph ph-arrow-down-left"></i></button>
+                <button class="nav-button" onclick="navigate(0, 1)"><i class="ph ph-arrow-down"></i></button>
+                <button class="nav-button" onclick="navigate(1, 1)"><i class="ph ph-arrow-down-right"></i></button>
+            </div>
+            <div style="margin-top: 10px;">
+                <button class="nav-button" onclick="adjustZoom(0.5)">Zoom +</button>
+                <button class="nav-button" onclick="adjustZoom(-0.5)">Zoom -</button>
+            </div>
+        </div>
+        
+        <!-- Old desktop control panel - now hidden -->
+        <div class="control-panel" id="controlPanel" style="display: none !important;">
+        </div>
+        
+        <div class="controls">
+            <p>Keyboard Controls:</p>
+            <p>Arrow Keys - Navigate | R - Reset</p>
+            <p>+ / - - Zoom | F - Fullscreen</p>
+            <p>Mouse - Drag to Pan | C - Toggle Panel</p>
+        </div>
+        
+        <!-- Universal Control Tray System -->
+        <button class="control-tray-button" id="controlTrayButton">
+            <i class="ph ph-sliders-horizontal"></i>
+        </button>
+        
+        <!-- Icon Tray -->
+        <div class="control-tray" id="controlTray">
+            <div class="tray-icon" id="flowIcon" data-section="flow" title="Flow Dynamics">
+                <i class="ph ph-lightning"></i>
+            </div>
+            <div class="tray-icon" id="growthIcon" data-section="growth" title="Organic Growth">
+                <i class="ph ph-plant"></i>
+            </div>
+            <div class="tray-icon" id="resonanceIcon" data-section="resonance" title="Resonance & Harmonics">
+                <i class="ph ph-wave-sine"></i>
+            </div>
+            <div class="tray-icon" id="visualIcon" data-section="visual" title="Visual Effects">
+                <i class="ph ph-sparkle"></i>
+            </div>
+            <div class="tray-icon" id="presetsIcon" data-section="presets" title="Presets">
+                <i class="ph ph-palette"></i>
+            </div>
+        </div>
+        
+        <!-- Transparent Control Panel -->
+        <div class="control-panel-overlay" id="controlPanelOverlay">
+            <!-- Dynamic content will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        let t = 0;
+        let canvasWidth, canvasHeight;
+        let scaleFactor = 2; // Magnification factor
+        let offsetX = 0, offsetY = 0; // Navigation offsets
+        let isDragging = false;
+        let lastMouseX, lastMouseY;
+        const panSpeed = 50;
+
+        // Mathematical parameters (now interactive)
+        let params = {
+            timeSpeed: 1.0,
+            flowDirection: 1.0,
+            turbulence: 3.0,
+            amplitude: 4.0,
+            frequency: 29.0,
+            spreading: 8.0,
+            harmonicStrength: 3.0,
+            resonance: 0.3,
+            complexity: 25.0,
+            radialScale: 30.0,
+            verticalStretch: 39.0,
+            centerOffset: 13.0
+        };
+
+        function setup() {
+            // Make canvas full screen
+            canvasWidth = windowWidth;
+            canvasHeight = windowHeight;
+            let canvas = createCanvas(canvasWidth, canvasHeight);
+            canvas.parent('canvas-container');
+            
+            // Initialize control tray after a short delay to ensure DOM is ready
+            setTimeout(() => {
+                initializeControlTray();
+                console.log('Control tray initialized');
+            }, 100);
+        }
+
+        function windowResized() {
+            // Handle window resize
+            canvasWidth = windowWidth;
+            canvasHeight = windowHeight;
+            resizeCanvas(canvasWidth, canvasHeight);
+        }
+
+        function draw() {
+            // Set background to very dark and stroke to white with transparency
+            background(9);
+            stroke(255, 96);
+            strokeWeight(Math.max(0.5, scaleFactor * 0.3));
+            noFill();
+
+            // Increment time with controllable speed
+            t += (PI / 240) * params.timeSpeed * params.flowDirection;
+
+            // Center, scale and apply navigation offset
+            push();
+            translate(canvasWidth / 2 + offsetX, canvasHeight / 2 + offsetY);
+            scale(scaleFactor);
+
+            // Adaptive resolution based on zoom level
+            let basePoints = 10000;
+            let resolutionMultiplier = Math.pow(scaleFactor, 1.5); // Increase resolution exponentially with zoom
+            let numPoints = Math.min(50000, Math.floor(basePoints * resolutionMultiplier));
+            
+            // Adaptive sampling density - higher zoom = finer sampling
+            let samplingDensity = 235 / Math.max(1, scaleFactor * 0.7);
+            
+            // Multiple detail passes for higher zoom levels
+            if (scaleFactor > 3) {
+                // High detail pass
+                stroke(255, 60);
+                strokeWeight(0.3);
+                for (let i = 0; i < numPoints * 0.6; i++) {
+                    drawMathPoint(i, i / (samplingDensity * 0.5));
+                }
+                
+                // Medium detail pass
+                stroke(255, 80);
+                strokeWeight(0.6);
+                for (let i = 0; i < numPoints * 0.4; i++) {
+                    drawMathPoint(i, i / samplingDensity);
+                }
+            } else if (scaleFactor > 1.5) {
+                // Medium resolution
+                stroke(255, 80);
+                strokeWeight(0.7);
+                for (let i = 0; i < numPoints; i++) {
+                    drawMathPoint(i, i / samplingDensity);
+                }
+            } else {
+                // Standard resolution
+                stroke(255, 96);
+                strokeWeight(1);
+                for (let i = 0; i < numPoints; i++) {
+                    drawMathPoint(i, i / samplingDensity);
+                }
+            }
+            
+            pop();
+
+            // Update all displays
+            updateDisplays(numPoints);
+        }
+
+        function drawMathPoint(x, y) {
+            // Enhanced mathematical function with interactive parameters
+            let detailFactor = Math.min(2, scaleFactor / 2);
+            
+            // Interactive mathematical function
+            let k = (params.amplitude + sin(y * 2 - t) * params.turbulence) * cos(x / (params.frequency / detailFactor));
+            let e = y / params.spreading - params.centerOffset;
+            let d = sqrt(k * k + e * e);
+            let c = d - t;
+            
+            // Enhanced detail calculation with interactive parameters
+            let detailTerm = sin(y / (params.complexity / detailFactor)) * k * (9 + 4 * sin(e * 9 - d * 3 + t * 2));
+            let q = params.harmonicStrength * sin(k * 2) + params.resonance / (k + 0.01) + detailTerm;
+            
+            // Additional high-frequency detail for high zoom
+            if (scaleFactor > 3) {
+                q += 0.5 * sin(k * 8 + t) * cos(e * 6 - d * 2) * (scaleFactor - 3) / 2;
+            }
+            
+            // Final coordinates with interactive scaling
+            let pointX = q + params.radialScale * cos(c);
+            let pointY = q * sin(c) + d * params.verticalStretch;
+            
+            // Draw with adaptive point size
+            if (scaleFactor > 4) {
+                ellipse(pointX, pointY, 0.5, 0.5);
+            } else {
+                point(pointX, pointY);
+            }
+        }
+
+        // Additional parameter update functions for desktop sliders
+        function updateHarmonicStrength(value) {
+            params.harmonicStrength = parseFloat(value);
+            const formatted = parseFloat(value).toFixed(1);
+            const desktopValue = document.getElementById('harmonicStrengthValue');
+            if (desktopValue) desktopValue.textContent = formatted;
+        }
+
+        function updateResonance(value) {
+            params.resonance = parseFloat(value);
+            const formatted = parseFloat(value).toFixed(2);
+            const desktopValue = document.getElementById('resonanceValue');
+            if (desktopValue) desktopValue.textContent = formatted;
+        }
+
+        function updateComplexity(value) {
+            params.complexity = parseFloat(value);
+            const formatted = value;
+            const desktopValue = document.getElementById('complexityValue');
+            if (desktopValue) desktopValue.textContent = formatted;
+        }
+
+        function updateCenterOffset(value) {
+            params.centerOffset = parseFloat(value);
+            const formatted = parseFloat(value).toFixed(1);
+            const desktopValue = document.getElementById('centerOffsetValue');
+            if (desktopValue) desktopValue.textContent = formatted;
+        }
+
+        // Control panel functions
+        function togglePanel() {
+            const panel = document.getElementById('controlPanel');
+            const arrow = document.getElementById('toggleArrow');
+            panel.classList.toggle('collapsed');
+            arrow.classList.toggle('collapsed');
+        }
+
+        // Preset configurations
+        function loadPreset(preset) {
+            switch(preset) {
+                case 'organic':
+                    setParams({
+                        timeSpeed: 0.8, flowDirection: 1.0, turbulence: 2.5,
+                        amplitude: 3.5, frequency: 25, spreading: 6,
+                        harmonicStrength: 2.5, resonance: 0.4, complexity: 20,
+                        radialScale: 35, verticalStretch: 45, centerOffset: 12
+                    });
+                    break;
+                case 'fluid':
+                    setParams({
+                        timeSpeed: 1.5, flowDirection: 1.2, turbulence: 4.5,
+                        amplitude: 5, frequency: 35, spreading: 12,
+                        harmonicStrength: 4, resonance: 0.2, complexity: 30,
+                        radialScale: 25, verticalStretch: 35, centerOffset: 15
+                    });
+                    break;
+                case 'crystalline':
+                    setParams({
+                        timeSpeed: 0.3, flowDirection: 1.0, turbulence: 1.5,
+                        amplitude: 6, frequency: 45, spreading: 4,
+                        harmonicStrength: 5, resonance: 0.6, complexity: 40,
+                        radialScale: 40, verticalStretch: 30, centerOffset: 10
+                    });
+                    break;
+                case 'chaotic':
+                    setParams({
+                        timeSpeed: 2.5, flowDirection: -1.5, turbulence: 8,
+                        amplitude: 8, frequency: 15, spreading: 15,
+                        harmonicStrength: 6, resonance: 0.8, complexity: 45,
+                        radialScale: 20, verticalStretch: 50, centerOffset: 18
+                    });
+                    break;
+                case 'default':
+                    setParams({
+                        timeSpeed: 1.0, flowDirection: 1.0, turbulence: 3.0,
+                        amplitude: 4.0, frequency: 29, spreading: 8,
+                        harmonicStrength: 3.0, resonance: 0.3, complexity: 25,
+                        radialScale: 30, verticalStretch: 39, centerOffset: 13
+                    });
+                    break;
+            }
+        }
+
+        function setParams(newParams) {
+            // Update parameters
+            Object.assign(params, newParams);
+            
+            // Update current control panel if active
+            if (currentSection && document.getElementById('controlPanelOverlay').classList.contains('active')) {
+                showControlSection(currentSection);
+            }
+        }
+
+        // New Control Tray System
+        let currentSection = null;
+        let dragData = {};
+        
+        // Initialize event listeners when page loads
+        function initializeControlTray() {
+            // Main control button
+            const trayButton = document.getElementById('controlTrayButton');
+            addClickAndTouchHandler(trayButton, toggleControlTray);
+            
+            // Tray icons
+            const icons = [
+                { id: 'flowIcon', section: 'flow' },
+                { id: 'growthIcon', section: 'growth' },
+                { id: 'resonanceIcon', section: 'resonance' },
+                { id: 'visualIcon', section: 'visual' },
+                { id: 'presetsIcon', section: 'presets' }
+            ];
+            
+            icons.forEach(icon => {
+                const element = document.getElementById(icon.id);
+                addClickAndTouchHandler(element, () => showControlSection(icon.section));
+            });
+            
+            // Add global click listener to collapse tray when clicking outside controls
+            document.addEventListener('click', handleGlobalClick);
+            document.addEventListener('touchend', handleGlobalTouch);
+        }
+        
+        function handleGlobalClick(e) {
+            handleOutsideClick(e, 'click');
+        }
+        
+        function handleGlobalTouch(e) {
+            handleOutsideClick(e, 'touch');
+        }
+        
+        function handleOutsideClick(e, eventType) {
+            const tray = document.getElementById('controlTray');
+            const overlay = document.getElementById('controlPanelOverlay');
+            
+            // Only proceed if tray or overlay is active
+            if (!tray.classList.contains('active') && !overlay.classList.contains('active')) {
+                return;
+            }
+            
+            // Get the target element (for touch events, use the touch point)
+            let target;
+            if (eventType === 'touch' && e.changedTouches && e.changedTouches.length > 0) {
+                const touch = e.changedTouches[0];
+                target = document.elementFromPoint(touch.clientX, touch.clientY);
+            } else {
+                target = e.target;
+            }
+            
+            // Check if click/touch is on a control element
+            const isOnControl = target && (
+                target.closest('.control-tray-button') ||
+                target.closest('.control-tray') ||
+                target.closest('.control-panel-overlay') ||
+                target.closest('.tray-icon') ||
+                target.closest('.drag-control') ||
+                target.closest('.preset-button')
+            );
+            
+            // If click/touch is outside controls, hide the tray
+            if (!isOnControl) {
+                hideControlTray();
+            }
+        }
+        
+        function addClickAndTouchHandler(element, callback) {
+            if (!element) return;
+            
+            // Add both click and touch event handlers
+            element.addEventListener('click', callback);
+            element.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                callback();
+            });
+            
+            // Prevent touch conflicts
+            element.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+            });
+            
+            element.addEventListener('touchmove', (e) => {
+                e.stopPropagation();
+            });
+        }
+        
+        function toggleControlTray() {
+            const tray = document.getElementById('controlTray');
+            const overlay = document.getElementById('controlPanelOverlay');
+            
+            console.log('Toggle control tray called'); // Debug log
+            
+            if (tray.classList.contains('active')) {
+                hideControlTray();
+            } else {
+                showControlTray();
+            }
+        }
+        
+        function showControlTray() {
+            console.log('Show control tray called');
+            document.getElementById('controlTray').classList.add('active');
+            hapticFeedback();
+        }
+        
+        function hideControlTray() {
+            document.getElementById('controlTray').classList.remove('active');
+            document.getElementById('controlPanelOverlay').classList.remove('active');
+            clearActiveIcon();
+            currentSection = null;
+        }
+        
+        function clearActiveIcon() {
+            document.querySelectorAll('.tray-icon').forEach(icon => {
+                icon.classList.remove('active');
+            });
+        }
+        
+        function showControlSection(section) {
+            console.log('Show control section called:', section);
+            currentSection = section;
+            
+            // Update active icon
+            clearActiveIcon();
+            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+            
+            // Show control panel with section content
+            const overlay = document.getElementById('controlPanelOverlay');
+            overlay.innerHTML = generateSectionContent(section);
+            overlay.classList.add('active');
+            
+            // Setup drag controls
+            setupDragControls();
+            hapticFeedback();
+        }
+
+        // Haptic feedback
+        function hapticFeedback() {
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }
+
+        // Generate section content
+        function generateSectionContent(section) {
+            const sections = {
+                flow: {
+                    title: 'Flow Dynamics',
+                    icon: 'ph-lightning',
+                    controls: [
+                        { key: 'timeSpeed', label: 'Time Speed', min: 0.1, max: 3, step: 0.1, unit: 'x' },
+                        { key: 'flowDirection', label: 'Flow Direction', min: -2, max: 2, step: 0.1, unit: '' },
+                        { key: 'turbulence', label: 'Turbulence', min: 0.5, max: 10, step: 0.1, unit: '' }
+                    ]
+                },
+                growth: {
+                    title: 'Organic Growth',
+                    icon: 'ph-plant',
+                    controls: [
+                        { key: 'amplitude', label: 'Growth Amplitude', min: 1, max: 10, step: 0.1, unit: '' },
+                        { key: 'frequency', label: 'Branch Frequency', min: 10, max: 60, step: 1, unit: '' },
+                        { key: 'spreading', label: 'Spreading Factor', min: 2, max: 20, step: 0.5, unit: '' }
+                    ]
+                },
+                resonance: {
+                    title: 'Resonance & Harmonics',
+                    icon: 'ph-wave-sine',
+                    controls: [
+                        { key: 'harmonicStrength', label: 'Harmonic Strength', min: 0.5, max: 8, step: 0.1, unit: '' },
+                        { key: 'resonance', label: 'Resonance Intensity', min: 0.05, max: 1, step: 0.05, unit: '' },
+                        { key: 'complexity', label: 'Wave Complexity', min: 5, max: 50, step: 1, unit: '' }
+                    ]
+                },
+                visual: {
+                    title: 'Visual Effects',
+                    icon: 'ph-sparkle',
+                    controls: [
+                        { key: 'radialScale', label: 'Radial Scale', min: 10, max: 80, step: 1, unit: '' },
+                        { key: 'verticalStretch', label: 'Vertical Stretch', min: 10, max: 80, step: 1, unit: '' },
+                        { key: 'centerOffset', label: 'Center Offset', min: 5, max: 25, step: 0.5, unit: '' }
+                    ]
+                },
+                presets: {
+                    title: 'Presets',
+                    icon: 'ph-palette',
+                    controls: []
+                }
+            };
+
+            const sectionData = sections[section];
+            if (!sectionData) return '';
+
+            let html = `<div class="control-section-header">
+                <i class="ph ${sectionData.icon} icon"></i>
+                <span>${sectionData.title}</span>
+            </div>`;
+
+            if (section === 'presets') {
+                html += `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-top: 20px;">
+                        <button class="preset-button" id="organicBtn" data-preset="organic">
+                            <i class="ph ph-leaf"></i> Organic
+                        </button>
+                        <button class="preset-button" id="fluidBtn" data-preset="fluid">
+                            <i class="ph ph-drop"></i> Fluid
+                        </button>
+                        <button class="preset-button" id="crystallineBtn" data-preset="crystalline">
+                            <i class="ph ph-diamond"></i> Crystal
+                        </button>
+                        <button class="preset-button" id="chaoticBtn" data-preset="chaotic">
+                            <i class="ph ph-spiral"></i> Chaotic
+                        </button>
+                        <button class="preset-button" id="defaultBtn" data-preset="default">
+                            <i class="ph ph-arrow-clockwise"></i> Reset
+                        </button>
+                    </div>
+                    <style>
+                        .preset-button {
+                            background: rgba(255,255,255,0.1);
+                            border: 2px solid rgba(255,255,255,0.4);
+                            color: rgba(255,255,255,0.8);
+                            padding: 12px 16px;
+                            border-radius: 10px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                            font-weight: bold;
+                            transition: all 0.3s ease;
+                            touch-action: manipulation;
+                        }
+                        .preset-button:hover, .preset-button:active {
+                            background: rgba(255,255,255,0.2);
+                            border-color: rgba(255,255,255,0.6);
+                            transform: scale(1.02);
+                        }
+                    </style>
+                `;
+            } else {
+                sectionData.controls.forEach(control => {
+                    const value = params[control.key];
+                    const percentage = ((value - control.min) / (control.max - control.min)) * 100;
+                    
+                    html += `
+                        <div class="drag-control" data-param="${control.key}" data-min="${control.min}" data-max="${control.max}" data-step="${control.step}">
+                            <span class="control-label">${control.label}</span>
+                            <span class="control-value" id="value-${control.key}">${formatValue(value, control.key)}${control.unit}</span>
+                            <div class="control-progress" style="width: ${percentage}%"></div>
+                            <div class="drag-hint">←→</div>
+                        </div>
+                    `;
+                });
+            }
+
+            return html;
+        }
+
+        function formatValue(value, key) {
+            if (key === 'resonance') return value.toFixed(2);
+            if (Number.isInteger(value) || ['frequency', 'complexity', 'radialScale', 'verticalStretch'].includes(key)) {
+                return value.toString();
+            }
+            return value.toFixed(1);
+        }
+
+        // Setup drag controls
+        function setupDragControls() {
+            // Setup drag controls for parameters
+            document.querySelectorAll('.drag-control').forEach(control => {
+                const param = control.dataset.param;
+                
+                // Mouse events
+                control.addEventListener('mousedown', startDrag);
+                control.addEventListener('mousemove', handleDrag);
+                control.addEventListener('mouseup', endDrag);
+                control.addEventListener('mouseleave', endDrag);
+                
+                // Touch events
+                control.addEventListener('touchstart', startDrag);
+                control.addEventListener('touchmove', handleDrag);
+                control.addEventListener('touchend', endDrag);
+            });
+            
+            // Setup preset buttons
+            document.querySelectorAll('.preset-button').forEach(button => {
+                const preset = button.dataset.preset;
+                if (preset) {
+                    addClickAndTouchHandler(button, () => {
+                        loadPreset(preset);
+                        hapticFeedback();
+                    });
+                }
+            });
+        }
+        
+        function startDrag(e) {
+            e.preventDefault();
+            const control = e.currentTarget;
+            const param = control.dataset.param;
+            
+            dragData = {
+                active: true,
+                param: param,
+                control: control,
+                startX: e.clientX || e.touches[0].clientX,
+                startValue: params[param],
+                min: parseFloat(control.dataset.min),
+                max: parseFloat(control.dataset.max),
+                step: parseFloat(control.dataset.step)
+            };
+            
+            control.style.cursor = 'grabbing';
+            hapticFeedback();
+        }
+        
+        function handleDrag(e) {
+            if (!dragData.active) return;
+            e.preventDefault();
+            
+            const currentX = e.clientX || e.touches[0].clientX;
+            const deltaX = currentX - dragData.startX;
+            const sensitivity = 0.005; // Adjust this to change drag sensitivity
+            
+            // Calculate new value based on drag distance
+            const range = dragData.max - dragData.min;
+            const change = deltaX * sensitivity * range;
+            let newValue = dragData.startValue + change;
+            
+            // Clamp to min/max
+            newValue = Math.max(dragData.min, Math.min(dragData.max, newValue));
+            
+            // Snap to step
+            newValue = Math.round(newValue / dragData.step) * dragData.step;
+            
+            // Update parameter
+            updateParameter(dragData.param, newValue);
+        }
+        
+        function endDrag(e) {
+            if (dragData.active) {
+                dragData.control.style.cursor = 'grab';
+                dragData.active = false;
+            }
+        }
+        
+        function updateParameter(param, value) {
+            params[param] = value;
+            
+            // Update display
+            const valueElement = document.getElementById(`value-${param}`);
+            const progressElement = dragData.control.querySelector('.control-progress');
+            
+            if (valueElement) {
+                const unit = dragData.control.querySelector('.control-value').textContent.match(/[a-zA-Z%]+$/) || [''];
+                valueElement.textContent = formatValue(value, param) + unit[0];
+            }
+            
+            if (progressElement) {
+                const percentage = ((value - dragData.min) / (dragData.max - dragData.min)) * 100;
+                progressElement.style.width = percentage + '%';
+            }
+        }
+
+        // Simplified parameter update functions (for old desktop controls and presets)
+        function updateTimeSpeed(value) { params.timeSpeed = parseFloat(value); }
+        function updateFlowDirection(value) { params.flowDirection = parseFloat(value); }
+        function updateTurbulence(value) { params.turbulence = parseFloat(value); }
+        function updateAmplitude(value) { params.amplitude = parseFloat(value); }
+        function updateFrequency(value) { params.frequency = parseFloat(value); }
+
+        function updateSpreading(value) {
+            params.spreading = parseFloat(value);
+            const formatted = parseFloat(value).toFixed(1);
+            const desktopValue = document.getElementById('spreadingValue');
+            if (desktopValue) desktopValue.textContent = formatted;
+            
+            const desktopSlider = document.getElementById('spreading');
+            if (desktopSlider && desktopSlider.value != value) desktopSlider.value = value;
+        }
+
+        function updateRadialScale(value) {
+            params.radialScale = parseFloat(value);
+            const formatted = value;
+            const desktopValue = document.getElementById('radialScaleValue');
+            if (desktopValue) desktopValue.textContent = formatted;
+            
+            const desktopSlider = document.getElementById('radialScale');
+            if (desktopSlider && desktopSlider.value != value) desktopSlider.value = value;
+        }
+
+        function updateVerticalStretch(value) {
+            params.verticalStretch = parseFloat(value);
+            const formatted = value;
+            const desktopValue = document.getElementById('verticalStretchValue');
+            if (desktopValue) desktopValue.textContent = formatted;
+            
+            const desktopSlider = document.getElementById('verticalStretch');
+            if (desktopSlider && desktopSlider.value != value) desktopSlider.value = value;
+        }
+
+        // Navigation functions
+        function navigate(dirX, dirY) {
+            offsetX += dirX * panSpeed;
+            offsetY += dirY * panSpeed;
+        }
+
+        function resetPosition() {
+            offsetX = 0;
+            offsetY = 0;
+            scaleFactor = 2;
+        }
+
+        function adjustZoom(delta) {
+            scaleFactor = Math.max(0.5, Math.min(10, scaleFactor + delta));
+        }
+
+        function updateDisplays(numPoints) {
+            // Update position display
+            let posText = offsetX === 0 && offsetY === 0 ? "Center" : 
+                `X: ${Math.round(offsetX)}, Y: ${Math.round(offsetY)}`;
+            document.getElementById('position').textContent = posText;
+            
+            // Update zoom display
+            document.getElementById('zoom').textContent = scaleFactor.toFixed(1) + 'x';
+            
+            // Update resolution display
+            let resLevel = scaleFactor < 1.5 ? "Standard" : 
+                          scaleFactor < 3 ? "High" :
+                          scaleFactor < 5 ? "Ultra" : "Maximum";
+            document.getElementById('resolution').textContent = resLevel;
+            
+            // Update points count
+            document.getElementById('points').textContent = numPoints.toLocaleString();
+        }
+
+        // Mouse interaction
+        function mousePressed() {
+            // Only start dragging if clicking on canvas area (not on controls)
+            if (mouseX >= 0 && mouseY >= 0 && mouseX <= width && mouseY <= height) {
+                isDragging = true;
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+            }
+        }
+
+        function mouseDragged() {
+            if (isDragging) {
+                let deltaX = mouseX - lastMouseX;
+                let deltaY = mouseY - lastMouseY;
+                offsetX += deltaX;
+                offsetY += deltaY;
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+            }
+        }
+
+        function mouseReleased() {
+            isDragging = false;
+        }
+
+        // Mouse wheel zoom
+        function mouseWheel(event) {
+            let zoomSensitivity = 0.1;
+            let zoomDelta = -event.delta * zoomSensitivity;
+            adjustZoom(zoomDelta);
+            return false; // Prevent page scroll
+        }
+
+        // Enhanced touch support for mobile
+        let touchStartTime = 0;
+        let lastTouchX = 0, lastTouchY = 0;
+        
+        function touchStarted() {
+            touchStartTime = Date.now();
+            if (touches.length === 1) {
+                lastTouchX = touches[0].x;
+                lastTouchY = touches[0].y;
+                
+                // Check if touch is on a control element
+                const touchTarget = document.elementFromPoint(touches[0].x, touches[0].y);
+                const isOnControl = touchTarget && (
+                    touchTarget.closest('.control-tray-button') ||
+                    touchTarget.closest('.control-tray') ||
+                    touchTarget.closest('.control-panel-overlay') ||
+                    touchTarget.closest('.tray-icon') ||
+                    touchTarget.closest('.drag-control') ||
+                    touchTarget.closest('.preset-button')
+                );
+                
+                // Only start canvas interaction if not touching controls
+                if (!isOnControl) {
+                    mousePressed();
+                }
+            }
+            return false; // Prevent default
+        }
+
+        function touchMoved() {
+            if (touches.length === 1) {
+                mouseDragged();
+            } else if (touches.length === 2) {
+                // Pinch zoom handling
+                let touch1 = touches[0];
+                let touch2 = touches[1];
+                let distance = dist(touch1.x, touch1.y, touch2.x, touch2.y);
+                
+                // Store initial distance for zoom calculation
+                if (!window.initialPinchDistance) {
+                    window.initialPinchDistance = distance;
+                    window.initialScaleFactor = scaleFactor;
+                }
+                
+                // Calculate zoom
+                let zoomRatio = distance / window.initialPinchDistance;
+                let newScale = window.initialScaleFactor * zoomRatio;
+                scaleFactor = Math.max(0.5, Math.min(10, newScale));
+            }
+            return false; // Prevent default
+        }
+
+        function touchEnded() {
+            let touchDuration = Date.now() - touchStartTime;
+            
+            // Reset pinch zoom tracking
+            window.initialPinchDistance = null;
+            window.initialScaleFactor = null;
+            
+            // End any active drag
+            if (dragData.active) {
+                endDrag();
+            }
+            
+            mouseReleased();
+            return false; // Prevent default
+        }
+
+        // Keyboard controls
+        function keyPressed() {
+            if (key === 'r' || key === 'R') {
+                t = 0;
+                resetPosition(); // Reset animation and position
+            }
+            if (key === 's' || key === 'S') {
+                save('math-visualization.png'); // Save current frame
+            }
+            if (key === 'f' || key === 'F') {
+                toggleFullscreen(); // Toggle fullscreen
+            }
+            if (key === 'c' || key === 'C') {
+                togglePanel(); // Toggle control panel
+            }
+            if (key === '+' || key === '=') {
+                adjustZoom(0.5); // Increase magnification
+            }
+            if (key === '-' || key === '_') {
+                adjustZoom(-0.5); // Decrease magnification
+            }
+            
+            // Arrow key navigation
+            if (keyCode === UP_ARROW) {
+                navigate(0, -1);
+            }
+            if (keyCode === DOWN_ARROW) {
+                navigate(0, 1);
+            }
+            if (keyCode === LEFT_ARROW) {
+                navigate(-1, 0);
+            }
+            if (keyCode === RIGHT_ARROW) {
+                navigate(1, 0);
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+    </script>
+</body>
+</html> 
