@@ -89,6 +89,18 @@ let pointY = q * sin(c) + d * verticalStretch;
 - **Vanilla JavaScript**: Pure JS for optimal performance
 - **HTML5 Canvas**: Hardware-accelerated rendering
 
+## 📁 Project Structure
+
+```
+viz-tsubuyaki/
+├── public/
+│   └── index.html          # Main application file
+├── README.md               # Project documentation
+└── .git/                   # Git repository
+```
+
+The `public/` folder contains the deployable web application, making it easy to deploy on platforms like Vercel, Netlify, or any static hosting service.
+
 ## 🎯 Key Technical Features
 
 - **Adaptive Resolution**: Automatically adjusts point density based on zoom level
@@ -105,16 +117,34 @@ let pointY = q * sin(c) + d * verticalStretch;
    cd viz-tsubuyaki
    ```
 
-2. Open `index.html` in your browser or serve locally:
+2. Open `public/index.html` in your browser or serve locally:
    ```bash
-   # Using Python
+   # Using Python (from project root)
    python -m http.server 8000
    
-   # Using Node.js
+   # Using Node.js (from project root)  
    npx serve .
+   
+   # Or serve the public folder directly
+   npx serve public
    ```
 
-3. Visit `http://localhost:8000` to experience the visualization
+3. Visit `http://localhost:8000` (or `http://localhost:3000` if serving public folder directly)
+
+## 🚀 Deploy to Vercel
+
+The project is structured for easy deployment on Vercel:
+
+1. **One-Click Deploy**: 
+   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/tanish2k/viz-tsubuyaki)
+
+2. **Manual Deploy**:
+   ```bash
+   npm i -g vercel
+   vercel --prod
+   ```
+   
+   Vercel will automatically detect the `public` folder and deploy the static site.
 
 ## 🎨 Presets
 
