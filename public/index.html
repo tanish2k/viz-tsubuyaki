@@ -241,10 +241,10 @@
             background: rgba(0,0,0,0.1);
             border: 2px solid rgba(255,255,255,0.8);
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             color: rgba(255,255,255,0.9);
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -268,11 +268,11 @@
             left: 100px;
             z-index: 95;
             display: none;
-            flex-direction: row;
-            gap: 15px;
-            padding: 15px;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
             background: rgba(0,0,0,0.05);
-            border-radius: 50px;
+            border-radius: 25px;
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255,255,255,0.2);
             transition: all 0.3s ease;
@@ -289,15 +289,15 @@
         }
         
         .tray-icon {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             background: rgba(255,255,255,0.1);
             border: 2px solid rgba(255,255,255,0.5);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 18px;
             color: rgba(255,255,255,0.8);
             cursor: pointer;
             transition: all 0.3s ease;
@@ -338,8 +338,28 @@
             touch-action: manipulation;
         }
         
-        .control-panel-overlay.active {
-            transform: translateY(0);
+        /* Desktop-specific control panel overlay */
+        @media (min-width: 769px) {
+            .control-panel-overlay {
+                bottom: 0;
+                left: 50%;
+                right: auto;
+                width: 600px;
+                max-height: 60vh;
+                transform: translate(-50%, 100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .control-panel-overlay.active {
+                transform: translate(-50%, 0);
+            }
+        }
+        
+        /* Mobile active state */
+        @media (max-width: 768px) {
+            .control-panel-overlay.active {
+                transform: translateY(0);
+            }
         }
         
         .control-section-header {
@@ -512,15 +532,12 @@
             .control-tray {
                 left: 20px;
                 top: 100px;
-                flex-direction: column;
-                gap: 10px;
-                padding: 10px;
             }
             
             .tray-icon {
-                width: 45px;
-                height: 45px;
-                font-size: 20px;
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
             }
             
             .control-panel-overlay {
@@ -530,7 +547,8 @@
         }
         
         @media (min-width: 769px) {
-            .info, .navigation, .control-panel, .controls {
+            /* Desktop: Hide info and navigation boxes, keep keyboard controls and mobile tray */
+            .info, .navigation, .control-panel {
                 display: none !important;
             }
         }
@@ -1147,10 +1165,17 @@
                     });
                 }
             });
+            
+            // Prevent control panel events from reaching canvas
+            const overlay = document.getElementById('controlPanelOverlay');
+            overlay.addEventListener('mousedown', (e) => e.stopPropagation());
+            overlay.addEventListener('mousemove', (e) => e.stopPropagation());
+            overlay.addEventListener('mouseup', (e) => e.stopPropagation());
         }
         
         function startDrag(e) {
             e.preventDefault();
+            e.stopPropagation();
             const control = e.currentTarget;
             const param = control.dataset.param;
             
@@ -1172,6 +1197,7 @@
         function handleDrag(e) {
             if (!dragData.active) return;
             e.preventDefault();
+            e.stopPropagation();
             
             const currentX = e.clientX || e.touches[0].clientX;
             const deltaX = currentX - dragData.startX;
@@ -1194,6 +1220,8 @@
         
         function endDrag(e) {
             if (dragData.active) {
+                e.preventDefault();
+                e.stopPropagation();
                 dragData.control.style.cursor = 'grab';
                 dragData.active = false;
             }
