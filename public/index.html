@@ -619,8 +619,8 @@
     <script>
         let t = 0;
         let canvasWidth, canvasHeight;
-        let scaleFactor = 2; // Magnification factor
-        let offsetX = 0, offsetY = 0; // Navigation offsets
+        let scaleFactor = 1.5; // Magnification factor - start more zoomed out
+        let offsetX = 0, offsetY = -500; // Navigation offsets - start centered higher
         let isDragging = false;
         let lastMouseX, lastMouseY;
         const panSpeed = 50;
@@ -1262,8 +1262,8 @@
 
         function resetPosition() {
             offsetX = 0;
-            offsetY = 0;
-            scaleFactor = 2;
+            offsetY = -500;
+            scaleFactor = 1.5;
         }
 
         function adjustZoom(delta) {
