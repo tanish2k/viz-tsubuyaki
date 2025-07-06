@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Mathematical Visualization</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
-    <!-- Phosphor Icons CDN -->
-    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         body {
             margin: 0;
@@ -82,6 +82,11 @@
         }
         .nav-button i {
             font-size: 14px;
+        }
+        
+        /* Lucide icon stroke width */
+        [data-lucide] {
+            stroke-width: 0.75px;
         }
         .nav-grid {
             display: grid;
@@ -239,11 +244,11 @@
             left: 20px;
             z-index: 100;
             background: rgba(0,0,0,0.1);
-            border: 2px solid rgba(255,255,255,0.8);
+            border: 2px solid rgba(255,255,255,1);
             border-radius: 50%;
             width: 50px;
             height: 50px;
-            color: rgba(255,255,255,0.9);
+            color: rgba(255,255,255,1);
             font-size: 20px;
             cursor: pointer;
             display: flex;
@@ -577,15 +582,15 @@
         <div class="navigation">
             <div class="nav-center"><strong>Navigate</strong></div>
             <div class="nav-grid">
-                <button class="nav-button" onclick="navigate(-1, -1)"><i class="ph ph-arrow-up-left"></i></button>
-                <button class="nav-button" onclick="navigate(0, -1)"><i class="ph ph-arrow-up"></i></button>
-                <button class="nav-button" onclick="navigate(1, -1)"><i class="ph ph-arrow-up-right"></i></button>
-                <button class="nav-button" onclick="navigate(-1, 0)"><i class="ph ph-arrow-left"></i></button>
-                <button class="nav-button" onclick="resetPosition()"><i class="ph ph-house"></i></button>
-                <button class="nav-button" onclick="navigate(1, 0)"><i class="ph ph-arrow-right"></i></button>
-                <button class="nav-button" onclick="navigate(-1, 1)"><i class="ph ph-arrow-down-left"></i></button>
-                <button class="nav-button" onclick="navigate(0, 1)"><i class="ph ph-arrow-down"></i></button>
-                <button class="nav-button" onclick="navigate(1, 1)"><i class="ph ph-arrow-down-right"></i></button>
+                            <button class="nav-button" onclick="navigate(-1, -1)"><i data-lucide="arrow-up-left"></i></button>
+            <button class="nav-button" onclick="navigate(0, -1)"><i data-lucide="arrow-up"></i></button>
+            <button class="nav-button" onclick="navigate(1, -1)"><i data-lucide="arrow-up-right"></i></button>
+            <button class="nav-button" onclick="navigate(-1, 0)"><i data-lucide="arrow-left"></i></button>
+            <button class="nav-button" onclick="resetPosition()"><i data-lucide="home"></i></button>
+            <button class="nav-button" onclick="navigate(1, 0)"><i data-lucide="arrow-right"></i></button>
+            <button class="nav-button" onclick="navigate(-1, 1)"><i data-lucide="arrow-down-left"></i></button>
+            <button class="nav-button" onclick="navigate(0, 1)"><i data-lucide="arrow-down"></i></button>
+            <button class="nav-button" onclick="navigate(1, 1)"><i data-lucide="arrow-down-right"></i></button>
             </div>
             <div style="margin-top: 10px;">
                 <button class="nav-button" onclick="adjustZoom(0.5)">Zoom +</button>
@@ -606,25 +611,25 @@
         
         <!-- Universal Control Tray System -->
         <button class="control-tray-button" id="controlTrayButton">
-            <i class="ph ph-sliders-horizontal"></i>
+            <i data-lucide="settings-2"></i>
         </button>
         
         <!-- Icon Tray -->
         <div class="control-tray" id="controlTray">
-            <div class="tray-icon" id="flowIcon" data-section="flow" title="Flow Dynamics">
-                <i class="ph ph-lightning"></i>
-            </div>
-            <div class="tray-icon" id="growthIcon" data-section="growth" title="Organic Growth">
-                <i class="ph ph-plant"></i>
-            </div>
-            <div class="tray-icon" id="resonanceIcon" data-section="resonance" title="Resonance & Harmonics">
-                <i class="ph ph-wave-sine"></i>
-            </div>
-            <div class="tray-icon" id="visualIcon" data-section="visual" title="Visual Effects">
-                <i class="ph ph-sparkle"></i>
-            </div>
+                    <div class="tray-icon" id="flowIcon" data-section="flow" title="Flow Dynamics">
+            <i data-lucide="wind"></i>
+        </div>
+        <div class="tray-icon" id="growthIcon" data-section="growth" title="Organic Growth">
+            <i data-lucide="sprout"></i>
+        </div>
+        <div class="tray-icon" id="resonanceIcon" data-section="resonance" title="Resonance & Harmonics">
+            <i data-lucide="radio"></i>
+        </div>
+        <div class="tray-icon" id="visualIcon" data-section="visual" title="Visual Effects">
+            <i data-lucide="sparkles"></i>
+        </div>
             <div class="tray-icon" id="presetsIcon" data-section="presets" title="Presets">
-                <i class="ph ph-palette"></i>
+                <i data-lucide="palette"></i>
             </div>
         </div>
         
@@ -638,7 +643,7 @@
         let t = 0;
         let canvasWidth, canvasHeight;
         let scaleFactor = 1.5; // Magnification factor - start more zoomed out
-        let offsetX = 0, offsetY = -500; // Navigation offsets - start centered higher
+        let offsetX = 0, offsetY = -500; // Navigation offsets - start centered with slight upward offset
         let isDragging = false;
         let lastMouseX, lastMouseY;
         const panSpeed = 50;
@@ -678,6 +683,9 @@
             canvasWidth = windowWidth;
             canvasHeight = windowHeight;
             resizeCanvas(canvasWidth, canvasHeight);
+            
+            // Recalculate optimal scaling for new screen size
+            centerAndScaleVisualization(scaleFactor);
         }
 
         function draw() {
@@ -808,50 +816,83 @@
             arrow.classList.toggle('collapsed');
         }
 
-        // Preset configurations
+        // Preset configurations - Mathematical Concept Based
         function loadPreset(preset) {
             switch(preset) {
-                case 'organic':
+                case 'drift':
+                    // DRIFT: Minimal speed, gentle motion - reveals subtle mathematical beauty
                     setParams({
-                        timeSpeed: 0.8, flowDirection: 1.0, turbulence: 2.5,
-                        amplitude: 3.5, frequency: 25, spreading: 6,
-                        harmonicStrength: 2.5, resonance: 0.4, complexity: 20,
-                        radialScale: 35, verticalStretch: 45, centerOffset: 12
+                        timeSpeed: 0.2, flowDirection: 0.5, turbulence: 1.0,
+                        amplitude: 3.0, frequency: 25, spreading: 8,
+                        harmonicStrength: 2.0, resonance: 0.2, complexity: 15,
+                        radialScale: 25, verticalStretch: 20, centerOffset: 8
                     });
+                    centerAndScaleVisualization(2.2); // Gentle zoom for contemplative viewing
                     break;
-                case 'fluid':
+                case 'surge':
+                    // SURGE: Maximum turbulence + growth amplitude + speed - explosive mathematical energy
                     setParams({
-                        timeSpeed: 1.5, flowDirection: 1.2, turbulence: 4.5,
-                        amplitude: 5, frequency: 35, spreading: 12,
-                        harmonicStrength: 4, resonance: 0.2, complexity: 30,
-                        radialScale: 25, verticalStretch: 35, centerOffset: 15
+                        timeSpeed: 2.2, flowDirection: 1.3, turbulence: 6.0,
+                        amplitude: 5.5, frequency: 35, spreading: 10,
+                        harmonicStrength: 4.5, resonance: 0.5, complexity: 30,
+                        radialScale: 35, verticalStretch: 25, centerOffset: 8
                     });
+                    centerAndScaleVisualization(2.0); // Better scale to see explosive patterns
                     break;
-                case 'crystalline':
+                case 'resonance':
+                    // RESONANCE: Harmonic strength and wave complexity maximized - structured mathematical beauty
                     setParams({
-                        timeSpeed: 0.3, flowDirection: 1.0, turbulence: 1.5,
-                        amplitude: 6, frequency: 45, spreading: 4,
-                        harmonicStrength: 5, resonance: 0.6, complexity: 40,
-                        radialScale: 40, verticalStretch: 30, centerOffset: 10
+                        timeSpeed: 1.2, flowDirection: 1.0, turbulence: 2.5,
+                        amplitude: 4.0, frequency: 30, spreading: 9,
+                        harmonicStrength: 6.5, resonance: 0.8, complexity: 40,
+                        radialScale: 30, verticalStretch: 25, centerOffset: 8
                     });
+                    centerAndScaleVisualization(1.8); // Balanced zoom to show harmonic detail
                     break;
-                case 'chaotic':
+                case 'vortex':
+                    // VORTEX: Polar transformation emphasis - circular/spiral mathematical patterns
                     setParams({
-                        timeSpeed: 2.5, flowDirection: -1.5, turbulence: 8,
-                        amplitude: 8, frequency: 15, spreading: 15,
-                        harmonicStrength: 6, resonance: 0.8, complexity: 45,
-                        radialScale: 20, verticalStretch: 50, centerOffset: 18
+                        timeSpeed: 1.0, flowDirection: 1.0, turbulence: 3.5,
+                        amplitude: 4.5, frequency: 25, spreading: 6,
+                        harmonicStrength: 3.5, resonance: 0.4, complexity: 22,
+                        radialScale: 50, verticalStretch: 18, centerOffset: 12
                     });
+                    centerAndScaleVisualization(1.5); // Better scale to capture full vortex patterns
                     break;
                 case 'default':
+                    // DEFAULT: Balanced parameters for general exploration
                     setParams({
                         timeSpeed: 1.0, flowDirection: 1.0, turbulence: 3.0,
                         amplitude: 4.0, frequency: 29, spreading: 8,
                         harmonicStrength: 3.0, resonance: 0.3, complexity: 25,
-                        radialScale: 30, verticalStretch: 39, centerOffset: 13
+                        radialScale: 30, verticalStretch: 25, centerOffset: 10
                     });
+                    centerAndScaleVisualization(1.8); // Standard balanced view
                     break;
             }
+        }
+
+        // Center and scale visualization for optimal viewing
+        function centerAndScaleVisualization(scale = 1.5) {
+            // Center the visualization properly with upward offset to compensate for mathematical positioning
+            offsetX = 0;
+            offsetY = -150; // Slight upward offset to counteract mathematical function positioning
+            
+            // Set optimal scale for the viewport
+            scaleFactor = scale;
+            
+            // Ensure scale works well for different screen sizes
+            const viewportRatio = window.innerWidth / window.innerHeight;
+            if (viewportRatio < 1) {
+                // Portrait mode - slightly smaller scale
+                scaleFactor *= 0.8;
+            } else if (viewportRatio > 2) {
+                // Very wide screens - can handle larger scale
+                scaleFactor *= 1.2;
+            }
+            
+            // Clamp scale to reasonable bounds
+            scaleFactor = Math.max(0.5, Math.min(3.0, scaleFactor));
         }
 
         function setParams(newParams) {
@@ -1018,7 +1059,7 @@
             const sections = {
                 flow: {
                     title: 'Flow Dynamics',
-                    icon: 'ph-lightning',
+                    icon: 'wind',
                     controls: [
                         { key: 'timeSpeed', label: 'Time Speed', min: 0.1, max: 3, step: 0.1, unit: 'x' },
                         { key: 'flowDirection', label: 'Flow Direction', min: -2, max: 2, step: 0.1, unit: '' },
@@ -1027,7 +1068,7 @@
                 },
                 growth: {
                     title: 'Organic Growth',
-                    icon: 'ph-plant',
+                    icon: 'sprout',
                     controls: [
                         { key: 'amplitude', label: 'Growth Amplitude', min: 1, max: 10, step: 0.1, unit: '' },
                         { key: 'frequency', label: 'Branch Frequency', min: 10, max: 60, step: 1, unit: '' },
@@ -1036,7 +1077,7 @@
                 },
                 resonance: {
                     title: 'Resonance & Harmonics',
-                    icon: 'ph-wave-sine',
+                    icon: 'radio',
                     controls: [
                         { key: 'harmonicStrength', label: 'Harmonic Strength', min: 0.5, max: 8, step: 0.1, unit: '' },
                         { key: 'resonance', label: 'Resonance Intensity', min: 0.05, max: 1, step: 0.05, unit: '' },
@@ -1045,7 +1086,7 @@
                 },
                 visual: {
                     title: 'Visual Effects',
-                    icon: 'ph-sparkle',
+                    icon: 'sparkles',
                     controls: [
                         { key: 'radialScale', label: 'Radial Scale', min: 10, max: 80, step: 1, unit: '' },
                         { key: 'verticalStretch', label: 'Vertical Stretch', min: 10, max: 80, step: 1, unit: '' },
@@ -1054,7 +1095,7 @@
                 },
                 presets: {
                     title: 'Presets',
-                    icon: 'ph-palette',
+                    icon: 'palette',
                     controls: []
                 }
             };
@@ -1063,27 +1104,30 @@
             if (!sectionData) return '';
 
             let html = `<div class="control-section-header">
-                <i class="ph ${sectionData.icon} icon"></i>
+                <i data-lucide="${sectionData.icon}" class="icon"></i>
                 <span>${sectionData.title}</span>
             </div>`;
 
             if (section === 'presets') {
                 html += `
+                    <div style="text-align: center; margin-bottom: 15px; color: rgba(255,255,255,0.7); font-size: 13px; line-height: 1.4;">
+                        Mathematical concept-based presets showcasing different parameter interactions
+                    </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-top: 20px;">
-                        <button class="preset-button" id="organicBtn" data-preset="organic">
-                            <i class="ph ph-leaf"></i> Organic
+                        <button class="preset-button" id="driftBtn" data-preset="drift" title="Minimal speed, gentle motion - reveals subtle mathematical beauty">
+                            <i data-lucide="waves"></i> Drift
                         </button>
-                        <button class="preset-button" id="fluidBtn" data-preset="fluid">
-                            <i class="ph ph-drop"></i> Fluid
+                        <button class="preset-button" id="surgeBtn" data-preset="surge" title="Maximum turbulence + growth amplitude + speed - explosive mathematical energy">
+                            <i data-lucide="zap"></i> Surge
                         </button>
-                        <button class="preset-button" id="crystallineBtn" data-preset="crystalline">
-                            <i class="ph ph-diamond"></i> Crystal
+                        <button class="preset-button" id="resonanceBtn" data-preset="resonance" title="Harmonic strength and wave complexity maximized - structured mathematical beauty">
+                            <i data-lucide="radio"></i> Resonance
                         </button>
-                        <button class="preset-button" id="chaoticBtn" data-preset="chaotic">
-                            <i class="ph ph-spiral"></i> Chaotic
+                        <button class="preset-button" id="vortexBtn" data-preset="vortex" title="Polar transformation emphasis - circular/spiral mathematical patterns">
+                            <i data-lucide="rotate-cw"></i> Vortex
                         </button>
-                        <button class="preset-button" id="defaultBtn" data-preset="default">
-                            <i class="ph ph-arrow-clockwise"></i> Reset
+                        <button class="preset-button" id="defaultBtn" data-preset="default" title="Balanced parameters for general exploration">
+                            <i data-lucide="rotate-ccw"></i> Reset
                         </button>
                     </div>
                     <style>
@@ -1289,9 +1333,29 @@
         }
 
         function resetPosition() {
+            // Reset time
+            t = 0;
+            
+            // Reset to exact original parameters (matching initial params object)
+            setParams({
+                timeSpeed: 1.0,
+                flowDirection: 1.0,
+                turbulence: 3.0,
+                amplitude: 4.0,
+                frequency: 29.0,
+                spreading: 8.0,
+                harmonicStrength: 3.0,
+                resonance: 0.3,
+                complexity: 25.0,
+                radialScale: 30.0,
+                verticalStretch: 39.0,
+                centerOffset: 13.0
+            });
+            
+            // Reset to original position and scale
             offsetX = 0;
-            offsetY = -500;
-            scaleFactor = 1.5;
+            offsetY = -500; // Original starting position
+            scaleFactor = 1.5; // Original starting scale
         }
 
         function adjustZoom(delta) {
@@ -1462,6 +1526,21 @@
                 document.exitFullscreen();
             }
         }
+        
+        // Initialize Lucide icons
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+        
+        // Re-initialize icons when control panels are updated
+        const originalShowControlSection = showControlSection;
+        showControlSection = function(section) {
+            originalShowControlSection(section);
+            // Re-initialize icons after content is added
+            setTimeout(() => {
+                lucide.createIcons();
+            }, 10);
+        };
     </script>
 </body>
 </html> 

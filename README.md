@@ -1,10 +1,10 @@
 # 🌊 Viz-Tsubuyaki
 
-*A live, interactive mathematical visualization that whispers the beauty of flowing equations*
+*A live, interactive mathematical visualization inspired by the art of code-golf creativity*
 
 ## ✨ Overview
 
-Viz-Tsubuyaki (つぶやき - "whisper/murmur") is an immersive mathematical art experience that transforms complex equations into flowing, organic visualizations. Built with p5.js, it renders real-time mathematical patterns that respond to user interactions, creating an endless dance of mathematical beauty.
+Viz-Tsubuyaki (つぶやき Processing - "Tweet Processing") is an immersive mathematical art experience that transforms complex equations into flowing, organic visualizations. Inspired by the Japanese Twitter/X challenge where creators craft full p5.js sketches in 280 characters, this project expands on that creative constraint to create an endless dance of mathematical beauty. Built with p5.js, it renders real-time mathematical patterns that respond to user interactions.
 
 ## 🎨 Features
 
@@ -18,7 +18,7 @@ Viz-Tsubuyaki (つぶやき - "whisper/murmur") is an immersive mathematical art
 
 ## 🚀 Live Demo
 
-Visit the live app: **[https://mathematical-viz.surge.sh](https://mathematical-viz.surge.sh)**
+Visit the live app: **[https://viz-tsubuyaki.vercel.app/](https://viz-tsubuyaki.vercel.app/)**
 
 ## 🎛️ Controls
 
@@ -41,7 +41,7 @@ Visit the live app: **[https://mathematical-viz.surge.sh](https://mathematical-v
 
 ## 🔧 Parameter Sections
 
-### Flow Dynamics ⚡
+### Flow Dynamics 🌬️
 - **Time Speed**: Controls animation speed
 - **Flow Direction**: Forward/reverse flow direction
 - **Turbulence**: Adds chaotic elements to the flow
@@ -51,7 +51,7 @@ Visit the live app: **[https://mathematical-viz.surge.sh](https://mathematical-v
 - **Branch Frequency**: Density of branching structures
 - **Spreading Factor**: How patterns spread across space
 
-### Resonance & Harmonics 〰️
+### Resonance & Harmonics 📻
 - **Harmonic Strength**: Intensity of harmonic frequencies
 - **Resonance Intensity**: Feedback strength in the system
 - **Wave Complexity**: Detail level of wave patterns
@@ -146,13 +146,13 @@ The project is structured for easy deployment on Vercel:
    
    Vercel will automatically detect the `public` folder and deploy the static site.
 
-## 🎨 Presets
+## 🎨 Mathematical Concept Presets
 
-- **Organic**: Natural, flowing patterns with moderate complexity
-- **Fluid**: High-energy, dynamic flows with increased turbulence
-- **Crystalline**: Structured, geometric patterns with high detail
-- **Chaotic**: Unpredictable, high-energy patterns with maximum complexity
-- **Default**: Balanced parameters for general exploration
+- **Drift** 🌊: Minimal speed, gentle motion - reveals subtle mathematical beauty through slow, contemplative patterns
+- **Surge** ⚡: Maximum turbulence + growth amplitude + speed - explosive mathematical energy with chaotic complexity
+- **Resonance** 📻: Harmonic strength and wave complexity maximized - structured mathematical beauty through frequency interactions
+- **Vortex** 🌀: Polar transformation emphasis - circular/spiral mathematical patterns showcasing radial coordinate systems
+- **Default** 🔄: Balanced parameters for general exploration and learning
 
 ## 📱 Browser Support
 
@@ -177,4 +177,4 @@ MIT License - Feel free to use this code for your own mathematical art projects!
 
 ---
 
-*Let the mathematics whisper their secrets through flowing digital art* ✨ 
+*Where mathematical beauty meets the art of creative constraints* ✨ 
